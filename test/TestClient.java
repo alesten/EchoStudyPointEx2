@@ -1,6 +1,9 @@
 import echoclient.EchoClient;
 import echoserver.EchoServer;
 import java.io.IOException;
+import java.util.Observable;
+import java.util.Observer;
+import javafx.beans.InvalidationListener;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -10,7 +13,7 @@ import static org.junit.Assert.*;
 /**
  * @author Lars Mortensen
  */
-public class TestClient {
+public class TestClient implements Observer{
   
   public TestClient() {
   }
@@ -39,7 +42,12 @@ public class TestClient {
     EchoClient client = new EchoClient();
     client.connect("localhost",9090);
     client.send("Hello");
-    assertEquals("HELLO", client.receive());
+    client.receive();
   }
+
+    @Override
+    public void update(Observable o, Object arg) {
+        assertEquals("HELLO", (String)arg);
+    }
   
 }
