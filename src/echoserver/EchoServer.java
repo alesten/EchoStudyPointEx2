@@ -5,6 +5,8 @@ import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.Scanner;
 import java.util.logging.Level;
@@ -17,16 +19,16 @@ public class EchoServer {
     private static boolean keepRunning = true;
     private static ServerSocket serverSocket;
     private static final Properties properties = Utils.initProperties("server.properties");
-
+    private static List<ClientHandler> clientHandlers;
+    
     public static void stopServer() {
         keepRunning = false;
     }
 
-    
-
     private void runServer() {
         int port = Integer.parseInt(properties.getProperty("port"));
         String ip = properties.getProperty("serverIp");
+        clientHandlers = new ArrayList();
 
         Logger.getLogger(EchoServer.class.getName()).log(Level.INFO, "Sever started. Listening on: " + port + ", bound to: " + ip);
         try {
@@ -35,10 +37,18 @@ public class EchoServer {
             do {
                 Socket socket = serverSocket.accept(); //Important Blocking call
                 Logger.getLogger(EchoServer.class.getName()).log(Level.INFO, "Connected to a client");
-                new ClientHandler(socket).start();
+                ClientHandler ch = new ClientHandler(socket);
+                clientHandlers.add(ch);
+                ch.start();
             } while (keepRunning);
         } catch (IOException ex) {
             Logger.getLogger(EchoServer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public static void send(String msg){
+        for (ClientHandler clientHandler : clientHandlers) {
+            clientHandler.send(msg);
         }
     }
 
@@ -49,5 +59,9 @@ public class EchoServer {
         new EchoServer().runServer();
 
         Utils.closeLogger(EchoServer.class.getName());
+    }
+    
+    public static void removeHandler(ClientHandler ch){
+        clientHandlers.remove(ch);
     }
 }
