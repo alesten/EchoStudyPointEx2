@@ -19,7 +19,7 @@ import java.util.logging.Logger;
  */
 public class EchoClientGUI extends javax.swing.JFrame implements Observer{
 
-    EchoClient echoClient;
+    static EchoClient echoClient;
     List<String> output;
     
     /**
@@ -29,12 +29,7 @@ public class EchoClientGUI extends javax.swing.JFrame implements Observer{
     public EchoClientGUI() throws IOException {
         initComponents();
         
-        echoClient = new EchoClient();
         echoClient.addObserver(this);
-        int port = 9090;
-        String ip = "localhost";
-        echoClient.connect(ip, port);
-        new Thread(echoClient).start();
         
         output = new ArrayList();
     }
@@ -54,6 +49,14 @@ public class EchoClientGUI extends javax.swing.JFrame implements Observer{
         jLabel2 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
+                formWindowClosing(evt);
+            }
+            public void windowClosed(java.awt.event.WindowEvent evt) {
+                formWindowClosed(evt);
+            }
+        });
 
         jButton1.setLabel("Send");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
@@ -117,12 +120,26 @@ public class EchoClientGUI extends javax.swing.JFrame implements Observer{
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         echoClient.send(jTextField1.getText());
         jTextField1.setText("");
+
+
     }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void formWindowClosed(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosed
+        
+    }//GEN-LAST:event_formWindowClosed
+
+    private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
+        try {
+            echoClient.stop();
+        } catch (IOException ex) {
+            Logger.getLogger(EchoClientGUI.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_formWindowClosing
 
     /**
      * @param args the command line arguments
      */
-    public static void main(String args[]) {
+    public static void main(String args[]) throws IOException {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
@@ -146,6 +163,17 @@ public class EchoClientGUI extends javax.swing.JFrame implements Observer{
         }
         //</editor-fold>
         
+        
+        echoClient = new EchoClient();
+
+        int port = 9090;
+        String ip = "localhost";
+        if(args.length == 2){
+            port = Integer.parseInt(args[0]);
+            ip = args[1];
+        }
+        echoClient.connect(ip, port);
+        new Thread(echoClient).start();
         
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
