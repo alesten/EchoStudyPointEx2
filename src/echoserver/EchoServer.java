@@ -22,21 +22,7 @@ public class EchoServer {
         keepRunning = false;
     }
 
-    private static void handleClient(Socket socket) throws IOException {
-        Scanner input = new Scanner(socket.getInputStream());
-        PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
-
-        String message = input.nextLine(); //IMPORTANT blocking call
-        Logger.getLogger(EchoServer.class.getName()).log(Level.INFO, String.format("Received the message: %1$S ", message));
-        while (!message.equals(ProtocolStrings.STOP)) {
-            writer.println(message.toUpperCase());
-            Logger.getLogger(EchoServer.class.getName()).log(Level.INFO, String.format("Received the message: %1$S ", message.toUpperCase()));
-            message = input.nextLine(); //IMPORTANT blocking call
-        }
-        writer.println(ProtocolStrings.STOP);//Echo the stop message back to the client for a nice closedown
-        socket.close();
-        Logger.getLogger(EchoServer.class.getName()).log(Level.INFO, "Closed a Connection");
-    }
+    
 
     private void runServer() {
         int port = Integer.parseInt(properties.getProperty("port"));
@@ -49,7 +35,7 @@ public class EchoServer {
             do {
                 Socket socket = serverSocket.accept(); //Important Blocking call
                 Logger.getLogger(EchoServer.class.getName()).log(Level.INFO, "Connected to a client");
-                handleClient(socket);
+                new ClientHandler(socket).start();
             } while (keepRunning);
         } catch (IOException ex) {
             Logger.getLogger(EchoServer.class.getName()).log(Level.SEVERE, null, ex);
